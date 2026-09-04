@@ -21,15 +21,22 @@ import scipy.optimize as sco
 # ------------------------------------------------------------------------------
 def fetch_financial_data(tickers, start_date, end_date):
     """
-    Downloads historical adjusted closing prices for a list of stocks.
-    
-    Adjusted close is used because it accounts for stock splits and dividend 
-    distributions, giving a more accurate reflection of asset value over time.
+    Downloads historical price data for a list of stocks.
+    Handles both 'Close' and 'Adj Close' dynamically across different yfinance versions.
     """
     print(f"-> Fetching data for: {', '.join(tickers)}")
-    # Download data and extract just the 'Adj Close' columns
-    data = yf.download(tickers, start=start_date, end=end_date)['Adj Close']
-    return data
+    df = yf.download(tickers, start=start_date, end=end_date)
+    
+    # Modern yfinance versions provide adjusted prices under 'Close'
+    if 'Close' in df.columns:
+        data = df['Close']
+    elif 'Adj Close' in df.columns:
+        data = df['Adj Close']
+    else:
+        data = df
+        
+    # Drop any missing values to ensure clean matrices for optimization
+    return data.dropna()
 
 # ------------------------------------------------------------------------------
 # SECTION 3: PORTFOLIO MATHEMATICS
